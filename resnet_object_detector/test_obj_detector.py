@@ -9,8 +9,8 @@ import time
 from PIL import Image
 from libs.sort import *
 
-video_path='../Videos/20190407_Male_DJI4_Three_porpoises.MOV'
-START_FRAME = 9425
+video_path='videos/20190319_Male_Group_of_porpoises_and_a_calf.MOV'
+START_FRAME = 0
 CONF = 0.5
 
 transform = transforms.Compose([
@@ -39,7 +39,7 @@ def predict(image, model, device, detection_threshold):
 
 def main():
     device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
-    model = torch.load("model_50_eproc")
+    model = torch.load("resnet_object_detector/models/model_50_eproc")
     model.eval().to(device)
 
     #Load video
@@ -49,7 +49,7 @@ def main():
     #create MO tracker
     mot_tracker = Sort(6,3,0.3) # max age out of frame, min amount of hits to start tracking, Minimum IOU for match
 
-    if not capture.isOpened:
+    if not capture.isOpened():
         print("Unable to open video")
         exit(0)
     while True:
@@ -60,15 +60,14 @@ def main():
             break
         
         
+        #Convert image to pil image and detect porpoises
         pilimg = Image.fromarray(frame)
         boxes, score = predict(pilimg, model, device, CONF)
         
 
         if boxes is not None:
-
+            #combine boxes and scores for MO tracker to use
             bBoxes = np.insert(boxes, 4, score, axis=1)
-
-            #print(bBoxes)
 
             track_bBoxes_id = mot_tracker.update(bBoxes)
 

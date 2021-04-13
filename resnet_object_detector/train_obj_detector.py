@@ -16,9 +16,13 @@ DATA_PATH = "resnet_object_detector"
 TRAIN_SPLIT = 0.1 
 
 TRANSFORM_IMG = T.Compose([
-    T.Resize(800),
     T.ToTensor(),
-    T.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])    
+    T.RandomHorizontalFlip(0.5),
+    T.RandomVerticalFlip(0.5),
+    T.Resize(IMG_RESIZE),
+    T.RandomColor(0.6),
+    #T.ShowImg(),
+    T.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
     ])
 
 
@@ -31,10 +35,10 @@ def main():
     val_dataset = porpoise_dataset(DATA_PATH, TRANSFORM_IMG)
 
     # Spiltting the dataset train and validation 90/10
-    split_pct = int(len(train_dataset)*TRAIN_SPLIT)
-    indices = torch.randperm(len(train_dataset)).tolist()
-    train_dataset = torch.utils.data.Subset(train_dataset, indices[:-split_pct])
-    val_dataset = torch.utils.data.Subset(val_dataset, indices[-split_pct:])
+    #split_pct = int(len(train_dataset)*TRAIN_SPLIT)
+    #indices = torch.randperm(len(train_dataset)).tolist()
+    #train_dataset = torch.utils.data.Subset(train_dataset, indices[:-split_pct])
+    #val_dataset = torch.utils.data.Subset(val_dataset, indices[-split_pct:])
 
     dataloader_train = data.DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=False,  num_workers=NUM_WORKERS, pin_memory=True, collate_fn=utils.collate_fn)
     dataloader_val = data.DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=False,  num_workers=NUM_WORKERS, pin_memory=True, collate_fn=utils.collate_fn)
