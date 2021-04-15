@@ -7,32 +7,40 @@ from pytorch_utils.engine import train_one_epoch, evaluate
 from pytorch_utils import utils
 
 
+
+
 from create_detection_dataset import porpoise_dataset
 
 IMG_RESIZE = 800
-BATCH_SIZE = 1
-NUM_WORKERS = 1
+BATCH_SIZE = 8
+NUM_WORKERS = 8
 DATA_PATH = "resnet_object_detector"
 TRAIN_SPLIT = 0.1 
 
-TRANSFORM_IMG = T.Compose([
+TRANSFORM_TRAIN = T.Compose([
     T.ToTensor(),
-    T.RandomHorizontalFlip(0.5),
-    T.RandomVerticalFlip(0.5),
     T.Resize(IMG_RESIZE),
-    T.RandomColor(0.6),
-    #T.ShowImg(),
+    #T.RandomVerticalFlip(0.5),
+    T.RandomHorizontalFlip(0.5),
+    T.RandomColor(0.6,0.4,0.5,0.2),
+    T.AddRandomNoise(0.05,0.5),
+    T.ShowImg(),
     T.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
     ])
 
+TRANSFORM_VAL= T.Compose([
+    T.ToTensor(),
+    T.Resize(IMG_RESIZE),
+    T.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+    ])
 
 def main():
     # train on the GPU or on the CPU
     device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
     
     # Create datasets with the right transforms
-    train_dataset = porpoise_dataset(DATA_PATH, TRANSFORM_IMG)
-    val_dataset = porpoise_dataset(DATA_PATH, TRANSFORM_IMG)
+    train_dataset = porpoise_dataset(DATA_PATH, TRANSFORM_TRAIN)
+    val_dataset = porpoise_dataset(DATA_PATH, TRANSFORM_VAL)
 
     # Spiltting the dataset train and validation 90/10
     #split_pct = int(len(train_dataset)*TRAIN_SPLIT)
@@ -74,7 +82,7 @@ def main():
         # evaluate on the test dataset
         evaluate(model, dataloader_val, device=device)
 
-    torch.save(model, "model")
+    torch.save(model, DATA_PATH + "/model")
 
 if __name__ == "__main__":
     main()
