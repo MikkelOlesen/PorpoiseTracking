@@ -4,6 +4,7 @@ from torchvision.transforms import functional as F
 import cv2
 import torch
 import math
+import time
 
 class Compose(object):
     def __init__(self, transforms):
@@ -46,6 +47,7 @@ class Resize(object):
         return image, target
 
 class RandomHorizontalFlip(object):
+    
     def __init__(self, probability):
         self.prob = probability
 
@@ -55,7 +57,7 @@ class RandomHorizontalFlip(object):
             image = F.hflip(image)
             bbox = target["boxes"]
             bbox[:, [0, 2]] = width - bbox[:, [2, 0]]
-            target["boxes"] = bbox
+            target["boxes"] = bbox    
         return image, target
 
 class RandomVerticalFlip(object):
@@ -72,19 +74,21 @@ class RandomVerticalFlip(object):
         return image, target
 
 class RandomColor(object):
-    def __init__(self, factor):
-        self.factor = factor
+    def __init__(self, brightness, contrast, saturation, hue):
+        self.brightness = brightness
+        self.contrast = contrast
+        self.saturation = saturation
+        self.hue = hue
     def __call__(self, image, target):
-        ran1 = random.uniform(1.0-self.factor, 1.0+self.factor)
-        ran2 = random.uniform(1.0-self.factor, 1.0+self.factor)
-        ran3 = random.uniform(1.0-self.factor, 1.0+self.factor)
-        ran4 = random.uniform(-0.5*self.factor, 0.5*self.factor)
+        ran1 = random.uniform(1.0-self.brightness, 1.0+self.brightness)
+        ran2 = random.uniform(1.0-self.contrast, 1.0+self.contrast)
+        ran3 = random.uniform(1.0-self.saturation, 1.0+self.saturation)
+        ran4 = random.uniform(-self.hue, self.hue)
 
         image = F.adjust_brightness(image, ran1)
         image = F.adjust_contrast(image, ran2)
         image = F.adjust_saturation(image, ran3)
         image = F.adjust_hue(image, ran4)
-
         return image, target
 
 class ShowImg(object):
