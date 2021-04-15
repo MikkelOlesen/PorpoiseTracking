@@ -9,13 +9,14 @@ import time
 from PIL import Image
 from libs.sort import *
 
-video_path='videos/20190319_Male_Group_of_porpoises_and_a_calf.MOV'
-START_FRAME = 0
+video_path='videos/20190629_Kerteminde_bay_Three_porpoises_Dennis_data.MOV'
+START_FRAME = 7200
 CONF = 0.5
 
 transform = transforms.Compose([
     #transforms.Resize(800),
     transforms.ToTensor(),
+    transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
 ])
 
 def predict(image, model, device, detection_threshold):
@@ -23,8 +24,7 @@ def predict(image, model, device, detection_threshold):
     image = transform(image).to(device)
     image = image.unsqueeze(0) # add a batch dimension
     outputs = model(image) # get the predictions on the image
-
-    #boz = torchvision.ops.nms(outputs[0]['boxes'],outputs[0]['scores'], 0.3)
+    
     # get score for all the predicted objects
     pred_scores = outputs[0]['scores'].detach().cpu().numpy()
     # get all the predicted bounding boxes
@@ -39,7 +39,7 @@ def predict(image, model, device, detection_threshold):
 
 def main():
     device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
-    model = torch.load("resnet_object_detector/models/model_50_eproc")
+    model = torch.load("resnet_object_detector/models/model_10_eproc_new")
     model.eval().to(device)
 
     #Load video
