@@ -79,6 +79,7 @@ class RandomColor(object):
         self.contrast = contrast
         self.saturation = saturation
         self.hue = hue
+
     def __call__(self, image, target):
         ran1 = random.uniform(1.0-self.brightness, 1.0+self.brightness)
         ran2 = random.uniform(1.0-self.contrast, 1.0+self.contrast)
@@ -90,6 +91,18 @@ class RandomColor(object):
         image = F.adjust_saturation(image, ran3)
         image = F.adjust_hue(image, ran4)
         return image, target
+
+class AddRandomNoise(object):
+    def __init__(self, factor, prob):
+        self.factor = factor
+        self.prob = prob
+
+    def __call__(self, image, target):
+        if random.random() < self.prob:
+            noise = torch.randn_like(image)
+            image = image + noise * self.factor
+        return image, target
+
 
 class ShowImg(object):
     def __call__(self, image, target):
