@@ -21,7 +21,7 @@ if __name__ == '__main__':
     total_frames = int(capture.get(cv2.CAP_PROP_FRAME_COUNT))
 
 
-    if not capture.isOpened:
+    if not capture.isOpened():
         print("Unable to open video")
         exit(0)
     
