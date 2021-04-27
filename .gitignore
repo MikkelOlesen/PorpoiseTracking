@@ -9,4 +9,4 @@ porpoise_detection_data/
 porpoise_keypoint_data/
 *.pyc
 *.pth
-yolo_object_detector/Libraries/PyTorch-YOLOv3
+yolo_object_detector/Libraries/
