@@ -3,28 +3,23 @@ import numpy as np
 import torch
 from PIL import Image
 
-def load_annotations(path, img_w, img_h):
+def load_keypoint_annotations(path, img_w, img_h):
     """
-        Loads bboxes in annotation file at 'path' and rescales from 0-1 to 0 to w,h
-        Also changes from xywh to x1y1x2y2
+        Loads keypoints in annotation file at 'path'
         Returns bboxes
     """
-    bboxes = []
+    keypoints = []
     with open(path, 'r') as file:
         for row in file:
-            _, xc , yc, w, h = row.split()
-            xc = float(xc)*img_w
-            yc = float(yc)*img_h
-            w = float(w)*img_w
-            h = float(h)*img_h
-            bboxes.append([xc - w/2 , yc - h/2, xc + w/2 , yc + h/2])
+            x, y , v = row.split()
+            keypoints.append([float(x), float(y), float(v)])
 
-    return bboxes
+    return keypoints
 
 
-class porpoise_dataset(object):
+class porpoise_keypoint_dataset(object):
     '''
-        Creates a dataset with images and bboxes.
+        Creates a dataset with images and keypoints.
         
         Must have subfolders imgs, annotations in the root dir. 
     '''
@@ -35,7 +30,6 @@ class porpoise_dataset(object):
 
         # load images and annotations
         self.imgs = list(sorted(os.listdir(os.path.join(self.root, "imgs"))))
-        self.annotations = list(sorted(os.listdir(os.path.join(self.root, "annotations"))))
 
     def __getitem__(self, idx):
         # load single image and and its annotations
@@ -44,26 +38,34 @@ class porpoise_dataset(object):
         # get size of input image
         img_w, img_h = img.size
 
-        annotations_path = os.path.join(self.root, "annotations", self.annotations[idx])
-        bboxes = load_annotations(annotations_path, img_w, img_h)
-        num_bboxes = len(bboxes)
+        annotation_name = os.path.splitext(self.imgs[idx])[0] + ".txt"
+        annotations_path = os.path.join(self.root, "annotations", annotation_name)
+        keypoints = load_keypoint_annotations(annotations_path, img_w, img_h)
+
+        # convert keypoints into torch.Tensor
+        keypoints = torch.as_tensor(keypoints, dtype=torch.float32)
+
+        # createing bbox that filles entire image. As imgs are only close-up imgs of porpoises
+        bbox = [[0, 0, img_w, img_h]]
 
         # convert bboxes into a torch.Tensor
-        boxes = torch.as_tensor(bboxes, dtype=torch.float32)
+        bbox = torch.as_tensor(bbox, dtype=torch.float32)
+        num_bboxes = len(bbox)
 
         # convert labels into tensor, since there is only one class the tensor is just filled with ones
         labels = torch.ones((num_bboxes,), dtype=torch.int64)
         image_id = torch.tensor([idx])
         iscrowd = torch.zeros((num_bboxes,), dtype=torch.int64)
-        area = (boxes[:, 3] - boxes[:, 1]) * (boxes[:, 2] - boxes[:, 0])
+        area = (bbox[:, 3] - bbox[:, 1]) * (bbox[:, 2] - bbox[:, 0])
         
 
         target = {}
-        target["boxes"] = boxes
+        target["boxes"] = bbox
         target["labels"] = labels
         target["image_id"] = image_id
         target["area"] = area
         target["iscrowd"] = iscrowd
+        target["keypoints"] = keypoints
         
 
         if self.transforms is not None:
@@ -76,6 +78,6 @@ class porpoise_dataset(object):
 
 
 if __name__ == "__main__":
-    test = porpoise_dataset("resnet_object_detector", transforms=None)
+    test = porpoise_keypoint_dataset("porpoise_keypoint_data", transforms=None)
     print(test.__getitem__(0))
 
