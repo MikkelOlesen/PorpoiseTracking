@@ -62,7 +62,7 @@ def main():
                 break
             elif key == ord('d') and (len(Pts) > 5):
                 with open(out_path + anno_name, 'w') as file:
-                    file.write(str(Pts[0]) + " " + str(Pts[1]) + " " + str(Pts[2]) + " " + str(Pts[3]) + " " + str(Pts[4]) + " " + str(Pts[5]))
+                    file.write(str(Pts[0]) + " " + str(Pts[1]) + " 1" + "\n" + str(Pts[2]) + " " + str(Pts[3]) + " 1" + "\n" + str(Pts[4]) + " " + str(Pts[5]) + " 1")
                 Pts = []
                 cv2.destroyAllWindows()
                 break
