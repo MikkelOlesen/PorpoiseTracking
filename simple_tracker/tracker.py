@@ -63,7 +63,7 @@ def track_cnt(cnts):
 
 
 mot_tracker = Sort(6,3,0.3)
-filename = os.path.join(dirname, '../Videos/20190319_Male_Group_of_porpoises_and_a_calf.MOV')
+filename = os.path.join(dirname, '../videos/training_data/20190319_Male_Group_of_porpoises_and_a_calf.MOV')
 capture = cv2.VideoCapture(filename)
 maskfilename = os.path.join(dirname, 'water_mask.PNG')
 reffilename = os.path.join(dirname, 'ref_img.PNG')
@@ -105,7 +105,7 @@ r_sd = 3.9693297640228216
 ''' Number of standard deviations to include '''
 std_div_fact = 5
 
-if not capture.isOpened:
+if not capture.isOpened():
     print("Unable to open video")
     exit(0)
 while True:

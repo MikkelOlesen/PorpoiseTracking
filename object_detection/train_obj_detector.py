@@ -13,7 +13,7 @@ from create_detection_dataset import porpoise_dataset
 
 IMG_RESIZE = 800
 BATCH_SIZE = 8
-NUM_WORKERS = 8
+NUM_WORKERS = 2
 DATA_PATH = "resnet_object_detector"
 TRAIN_SPLIT = 0.1 
 
@@ -43,12 +43,12 @@ def main():
     val_dataset = porpoise_dataset(DATA_PATH, TRANSFORM_VAL)
 
     # Spiltting the dataset train and validation 90/10
-    #split_pct = int(len(train_dataset)*TRAIN_SPLIT)
-    #indices = torch.randperm(len(train_dataset)).tolist()
-    #train_dataset = torch.utils.data.Subset(train_dataset, indices[:-split_pct])
-    #val_dataset = torch.utils.data.Subset(val_dataset, indices[-split_pct:])
+    split_pct = int(len(train_dataset)*TRAIN_SPLIT)
+    indices = torch.randperm(len(train_dataset)).tolist()
+    train_dataset = torch.utils.data.Subset(train_dataset, indices[:-split_pct])
+    val_dataset = torch.utils.data.Subset(val_dataset, indices[-split_pct:])
 
-    dataloader_train = data.DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=False,  num_workers=NUM_WORKERS, pin_memory=True, collate_fn=utils.collate_fn)
+    dataloader_train = data.DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True,  num_workers=NUM_WORKERS, pin_memory=True, collate_fn=utils.collate_fn)
     dataloader_val = data.DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=False,  num_workers=NUM_WORKERS, pin_memory=True, collate_fn=utils.collate_fn)
 
     # Using pretrained resnet50 model

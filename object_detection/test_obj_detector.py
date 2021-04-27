@@ -9,8 +9,8 @@ import time
 from PIL import Image
 from libs.sort import *
 
-video_path='videos/20190629_Kerteminde_bay_Three_porpoises_Dennis_data.MOV'
-START_FRAME = 7200
+video_path='videos/20200417 - Male - Group of porpoises with calf foraging seagulls stealing.MOV'
+START_FRAME = 1800*3
 CONF = 0.5
 
 transform = transforms.Compose([
@@ -19,6 +19,21 @@ transform = transforms.Compose([
     transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
 ])
 
+def timeit(method):
+    def timed(*args, **kw):
+        ts = time.time()
+        result = method(*args, **kw)
+        te = time.time()
+        if 'log_time' in kw:
+            name = kw.get('log_name', method.__name__.upper())
+            kw['log_time'][name] = int((te - ts) * 1000)
+        else:
+            print ('%r  %2.2f ms' % \
+                  (method.__name__, (te - ts) * 1000))
+        return result
+    return timed
+
+@timeit
 def predict(image, model, device, detection_threshold):
     # transform the image to tensor
     image = transform(image).to(device)
@@ -39,13 +54,13 @@ def predict(image, model, device, detection_threshold):
 
 def main():
     device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
-    model = torch.load("resnet_object_detector/models/model_10_eproc_new")
+    model = torch.load("resnet_object_detector/models/model_10_eproc_big_set")
     model.eval().to(device)
 
     #Load video
     capture = cv2.VideoCapture(video_path)
     capture.set(cv2.CAP_PROP_POS_FRAMES, START_FRAME)
-
+    
     #create MO tracker
     mot_tracker = Sort(6,3,0.3) # max age out of frame, min amount of hits to start tracking, Minimum IOU for match
 
@@ -64,7 +79,7 @@ def main():
         pilimg = Image.fromarray(frame)
         boxes, score = predict(pilimg, model, device, CONF)
         
-
+        
         if boxes is not None:
             #combine boxes and scores for MO tracker to use
             bBoxes = np.insert(boxes, 4, score, axis=1)
@@ -88,7 +103,6 @@ def main():
         cv2.putText(frame, str(int(capture.get(cv2.CAP_PROP_POS_FRAMES))), (30, 80), cv2.FONT_HERSHEY_SIMPLEX, 3, (0,0,0),thickness=6)
         #cv2.putText(frame, str(int(fps)), (30, 80), cv2.FONT_HERSHEY_SIMPLEX, 3, (0,0,0),thickness=6)
 
-        
         x = 3
         cv2.namedWindow("Frame",cv2.WINDOW_KEEPRATIO)
         cv2.resizeWindow('Frame', int(frame.shape[1]/x),int(frame.shape[0]/x))
