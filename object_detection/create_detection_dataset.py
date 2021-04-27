@@ -35,7 +35,6 @@ class porpoise_dataset(object):
 
         # load images and annotations
         self.imgs = list(sorted(os.listdir(os.path.join(self.root, "imgs"))))
-        self.annotations = list(sorted(os.listdir(os.path.join(self.root, "annotations"))))
 
     def __getitem__(self, idx):
         # load single image and and its annotations
@@ -44,7 +43,8 @@ class porpoise_dataset(object):
         # get size of input image
         img_w, img_h = img.size
 
-        annotations_path = os.path.join(self.root, "annotations", self.annotations[idx])
+        annotation_name = os.path.splitext(self.imgs[idx])[0] + ".txt"
+        annotations_path = os.path.join(self.root, "annotations", annotation_name)
         bboxes = load_annotations(annotations_path, img_w, img_h)
         num_bboxes = len(bboxes)
 
@@ -76,6 +76,6 @@ class porpoise_dataset(object):
 
 
 if __name__ == "__main__":
-    test = porpoise_dataset("resnet_object_detector", transforms=None)
-    print(test.__getitem__(0))
+    test = porpoise_dataset("porpoise_detection_data", transforms=None)
+    print(test.__getitem__(725))
 
