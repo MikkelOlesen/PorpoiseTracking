@@ -23,8 +23,8 @@ def annotate_img(event, x, y, flags, param):
     global Pts
     
     if event == cv2.EVENT_LBUTTONDOWN:
-        if len(Pts) < 6:
-            radius = 10
+        if len(Pts) < 8:
+            radius = 8
             cv2.circle(param,(x,y),radius,(0,255,0), 1)
             cv2.line(param,(x-radius,y),(x+radius,y),(0,255,0),1)
             cv2.line(param,(x,y-radius),(x,y+radius),(0,255,0),1)
@@ -60,9 +60,9 @@ def main():
             if key == ord('q'):
                 end = True
                 break
-            elif key == ord('d') and (len(Pts) > 5):
+            elif key == ord('d') and (len(Pts) > 7):
                 with open(out_path + anno_name, 'w') as file:
-                    file.write(str(Pts[0]) + " " + str(Pts[1]) + " 1" + "\n" + str(Pts[2]) + " " + str(Pts[3]) + " 1" + "\n" + str(Pts[4]) + " " + str(Pts[5]) + " 1")
+                    file.write(str(Pts[0]) + " " + str(Pts[1]) + " 1" + "\n" + str(Pts[2]) + " " + str(Pts[3]) + " 1" + "\n" + str(Pts[4]) + " " + str(Pts[5]) + " 1" + "\n" + str(Pts[6]) + " " + str(Pts[7]) + " 1")
                 Pts = []
                 cv2.destroyAllWindows()
                 break
