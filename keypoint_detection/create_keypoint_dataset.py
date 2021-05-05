@@ -6,13 +6,13 @@ from PIL import Image
 def load_keypoint_annotations(path, img_w, img_h):
     """
         Loads keypoints in annotation file at 'path'
-        Returns bboxes
+        Returns keypoints
     """
     keypoints = []
     with open(path, 'r') as file:
         for row in file:
-            x, y , v = row.split()
-            keypoints.append([float(x), float(y), float(v)])
+            x, y , _ = row.split()
+            keypoints.append([float(x), float(y)])
 
     return keypoints
 
@@ -21,7 +21,7 @@ class porpoise_keypoint_dataset(object):
     '''
         Creates a dataset with images and keypoints.
         
-        Must have subfolders imgs, annotations in the root dir. 
+        Must have subfolders 'imgs', 'annotations' in the root dir. 
     '''
 
     def __init__(self, rootfolder, transforms):
@@ -45,33 +45,12 @@ class porpoise_keypoint_dataset(object):
         # convert keypoints into torch.Tensor
         keypoints = torch.as_tensor(keypoints, dtype=torch.float32)
 
-        # createing bbox that filles entire image. As imgs are only close-up imgs of porpoises
-        bbox = [[0, 0, img_w, img_h]]
+        sample = {'image': img, 'keypoints': keypoints}
 
-        # convert bboxes into a torch.Tensor
-        bbox = torch.as_tensor(bbox, dtype=torch.float32)
-        num_bboxes = len(bbox)
+        if self.transforms:
+            sample = self.transforms(sample)
 
-        # convert labels into tensor, since there is only one class the tensor is just filled with ones
-        labels = torch.ones((num_bboxes,), dtype=torch.int64)
-        image_id = torch.tensor([idx])
-        iscrowd = torch.zeros((num_bboxes,), dtype=torch.int64)
-        area = (bbox[:, 3] - bbox[:, 1]) * (bbox[:, 2] - bbox[:, 0])
-        
-
-        target = {}
-        target["boxes"] = bbox
-        target["labels"] = labels
-        target["image_id"] = image_id
-        target["area"] = area
-        target["iscrowd"] = iscrowd
-        target["keypoints"] = keypoints
-        
-
-        if self.transforms is not None:
-            img, target = self.transforms(img, target)
-
-        return img, target
+        return sample
 
     def __len__(self):
         return len(self.imgs)
