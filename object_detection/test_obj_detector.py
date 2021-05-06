@@ -10,7 +10,7 @@ from PIL import Image
 from libs.sort import *
 
 video_path='videos/20200417 - Male - Group of porpoises with calf foraging seagulls stealing.MOV'
-START_FRAME = 1800*3
+START_FRAME = 2000*4
 CONF = 0.5
 
 transform = transforms.Compose([
@@ -38,7 +38,8 @@ def predict(image, model, device, detection_threshold):
     # transform the image to tensor
     image = transform(image).to(device)
     image = image.unsqueeze(0) # add a batch dimension
-    outputs = model(image) # get the predictions on the image
+    with torch.no_grad():
+        outputs = model(image) # get the predictions on the image
     
     # get score for all the predicted objects
     pred_scores = outputs[0]['scores'].detach().cpu().numpy()
@@ -54,7 +55,8 @@ def predict(image, model, device, detection_threshold):
 
 def main():
     device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
-    model = torch.load("resnet_object_detector/models/model_10_eproc_big_set")
+    #model = torch.load("object_detection/models/model_20_eproc_resnet")
+    model = torch.load("object_detection/models/model_10_eproc_big_set")
     model.eval().to(device)
 
     #Load video
