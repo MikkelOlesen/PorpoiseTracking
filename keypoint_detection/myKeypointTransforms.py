@@ -100,6 +100,44 @@ class AddRandomNoise(object):
         return {'image': image, 'keypoints': keypoints}
 
 
+class RandomFlip(object):
+    def __call__(self, sample):
+        image, keypoints = sample['image'], sample['keypoints']
+        value = random.random()
+
+        if value <= 0.25:  #Horiensontal flip
+            height, width = image.shape[-2:]
+            image = F.hflip(image)
+
+            for i, (x, y) in enumerate(keypoints):
+                keypoints[i][0] = width - x
+
+            temp_keypoints = keypoints.clone()
+            keypoints[3] = temp_keypoints[2]
+            keypoints[2] = temp_keypoints[3]
+        elif(value <= 0.5): #Vertical flip
+            height, width = image.shape[-2:]
+            image = F.vflip(image)
+
+            for i, (x, y) in enumerate(keypoints):
+                keypoints[i][1] = height - y
+
+            temp_keypoints = keypoints.clone()
+            keypoints[3] = temp_keypoints[2]
+            keypoints[2] = temp_keypoints[3]
+        elif(value <= 0.75): #Double flip (rotate 180)
+            height, width = image.shape[-2:]
+            image = F.vflip(image)
+            image = F.hflip(image)
+
+            for i, (x, y) in enumerate(keypoints):
+                keypoints[i][1] = height - y
+                keypoints[i][0] = width - x
+        else:
+            pass
+        return {'image': image, 'keypoints': keypoints}
+
+
 class ShowImg(object):
     def __call__(self, sample):
         image, keypoints = sample['image'], sample['keypoints']
