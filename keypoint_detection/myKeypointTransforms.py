@@ -4,6 +4,7 @@ from torchvision.transforms import functional as F
 import cv2
 import torch
 import math
+from PIL import Image
 import time
 
 class Compose(object):
@@ -66,7 +67,6 @@ class Square_Pad:
 
         return {'image': image, 'keypoints': keypoints}
 
-
 class RandomColor(object):
     def __init__(self, brightness, contrast, saturation, hue):
         self.brightness = brightness
@@ -95,8 +95,8 @@ class AddRandomNoise(object):
     def __call__(self, sample):
         image, keypoints = sample['image'], sample['keypoints']
         if random.random() < self.prob:
-            noise = torch.randn_like(image)
-            image = image + noise * self.factor
+            noise = torch.randn_like(image) * self.factor 
+            image = image + noise
         return {'image': image, 'keypoints': keypoints}
 
 
@@ -139,19 +139,22 @@ class RandomFlip(object):
 
 
 class ShowImg(object):
+    '''
+    Shows image in opencv window. 
+    Used to test transforms
+    '''
     def __call__(self, sample):
         image, keypoints = sample['image'], sample['keypoints']
 
-        mean = np.array([0.485, 0.456, 0.406])
-        std =  np.array([0.229, 0.224, 0.225])
 
         pil_image = F.to_pil_image(image)
 
         open_cv_image = np.array(pil_image) 
         open_cv_image = open_cv_image[:, :, ::-1].copy() 
 
-        for x, y in keypoints:
-                cv2.circle(open_cv_image, (x,y), radius=2, color=(0,0,255), thickness=-1)
+        for i, (x, y) in enumerate(keypoints):
+                t = i + 1
+                cv2.circle(open_cv_image, (x,y), radius=2, color=(int(255/t),0,int((255/4) * t)), thickness=-1)
 
         cv2.imshow("Augmentented", open_cv_image)
         cv2.waitKey(0)

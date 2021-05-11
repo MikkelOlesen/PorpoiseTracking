@@ -38,6 +38,7 @@ class porpoise_keypoint_dataset(object):
         # get size of input image
         img_w, img_h = img.size
 
+        #Load annotation file corresponding to image file
         annotation_name = os.path.splitext(self.imgs[idx])[0] + ".txt"
         annotations_path = os.path.join(self.root, "annotations", annotation_name)
         keypoints = load_keypoint_annotations(annotations_path, img_w, img_h)
@@ -47,6 +48,7 @@ class porpoise_keypoint_dataset(object):
 
         sample = {'image': img, 'keypoints': keypoints}
 
+        #Apply image transforms
         if self.transforms:
             sample = self.transforms(sample)
 

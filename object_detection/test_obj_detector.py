@@ -9,35 +9,21 @@ import time
 from PIL import Image
 from libs.sort import *
 
-video_path='videos/20200417 - Male - Group of porpoises with calf foraging seagulls stealing.MOV'
-START_FRAME = 2000*4
+video_path='videos/20200417 - Male - Group of porpoises bottom feeding.MOV'
+START_FRAME = 0
 CONF = 0.5
 
 transform = transforms.Compose([
-    #transforms.Resize(800),
+    transforms.Resize(800),
     transforms.ToTensor(),
     transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
 ])
 
-def timeit(method):
-    def timed(*args, **kw):
-        ts = time.time()
-        result = method(*args, **kw)
-        te = time.time()
-        if 'log_time' in kw:
-            name = kw.get('log_name', method.__name__.upper())
-            kw['log_time'][name] = int((te - ts) * 1000)
-        else:
-            print ('%r  %2.2f ms' % \
-                  (method.__name__, (te - ts) * 1000))
-        return result
-    return timed
-
-@timeit
-def predict(image, model, device, detection_threshold):
+def run_model(image, model, device, detection_threshold):
     # transform the image to tensor
     image = transform(image).to(device)
     image = image.unsqueeze(0) # add a batch dimension
+
     with torch.no_grad():
         outputs = model(image) # get the predictions on the image
     
@@ -55,7 +41,6 @@ def predict(image, model, device, detection_threshold):
 
 def main():
     device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
-    #model = torch.load("object_detection/models/model_20_eproc_resnet")
     model = torch.load("object_detection/models/model_10_eproc_big_set")
     model.eval().to(device)
 
@@ -79,7 +64,7 @@ def main():
         
         #Convert image to pil image and detect porpoises
         pilimg = Image.fromarray(frame)
-        boxes, score = predict(pilimg, model, device, CONF)
+        boxes, score = run_model(pilimg, model, device, CONF)
         
         
         if boxes is not None:
@@ -88,17 +73,16 @@ def main():
 
             track_bBoxes_id = mot_tracker.update(bBoxes)
 
+            #Draw predicted box
             for x1, y1, x2, y2, score in bBoxes:
                 cv2.rectangle(frame, (int(x1), int(y1)), (int(x2), int(y2)), (0,0,128),2)
                 cv2.putText(frame,str(score),(int(x2), int(y2)),cv2.FONT_HERSHEY_SIMPLEX, 1.1, (0,0,0),thickness=3)
             
+            #Draw tracked box
             for bb in track_bBoxes_id:
                 cv2.rectangle(frame, (int(bb[0]), int(bb[1])), (int(bb[2]),int(bb[3])), (0,255,0),2)
                 cv2.putText(frame,str(int(bb[4])),(int(bb[0]),int(bb[1])),cv2.FONT_HERSHEY_SIMPLEX, 1.1, (0,0,0),thickness=3)
         
-
-
-
 
         #fps = cv2.getTickFrequency() / (cv2.getTickCount() - timer)
         cv2.rectangle(frame, (10, 2), (300,100), (255,255,255), -1)

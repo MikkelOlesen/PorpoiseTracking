@@ -12,11 +12,13 @@ def parse_args():
     return args
 
 if __name__ == '__main__':
+    #load arguments
     args = parse_args()
     input_path = args.input_path
     output_path = args.output_path
     frame_spaceing = args.frame_spaceing
 
+    #Open video
     capture = cv2.VideoCapture(input_path)
     total_frames = int(capture.get(cv2.CAP_PROP_FRAME_COUNT))
 
@@ -32,7 +34,8 @@ if __name__ == '__main__':
         
         if frame is None:
             break
-
+        
+        #Save each individual frame every N frames 
         if(not(frame_number % frame_spaceing)):
             cv2.imwrite(output_path + str(frame_number) + ".jpg",frame)
             print("Exported frame: " + str(frame_number) + " / " + str(total_frames) + " -- " + output_path + str(frame_number) + ".jpg")
