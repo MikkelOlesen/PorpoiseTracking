@@ -25,7 +25,7 @@ transform = transforms.Compose([
 ])
 
 
-def transform_coords_to_original_size(orig_image, keypoints):
+def transform_keypoints_to_original_size(orig_image, keypoints):
     [[x1, y1, x2, y2, x3, y3, x4, y4]] = keypoints 
 
     #get padding
@@ -56,9 +56,10 @@ def main():
     model_image = model_image.unsqueeze(0)
 
     #Run model on image
-    keypoints = model(model_image).cpu().detach().numpy()
+    with torch.no_grad():
+        keypoints = model(model_image).cpu().detach().numpy()
 
-    keypoints = transform_coords_to_original_size(image, keypoints)
+    keypoints = transform_keypoints_to_original_size(image, keypoints)
     [x1, y1, x2, y2, x3, y3, x4, y4] = keypoints
     
     #Convert to opencv Image
