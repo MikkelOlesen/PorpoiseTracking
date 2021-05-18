@@ -10,7 +10,7 @@ from create_keypoint_dataset import porpoise_keypoint_dataset
 import myKeypointTransforms as T
 
 IMG_RESIZE = 224
-BATCH_SIZE = 8
+BATCH_SIZE = 32
 NUM_WORKERS = 2
 SAVE_MODEL_DIR = "keypoint_detection"
 DATA_PATH = "porpoise_keypoint_data"
@@ -23,7 +23,6 @@ TRANSFORM_TRAIN = T.Compose([
     T.ToTensor(),
     T.RandomColor(0.4,0.2,0.3,0.1),
     T.AddRandomNoise(0.02,0.5),
-    #T.RandomErase(0.5),
     T.RandomFlip(),
     T.Square_Pad(),
     T.Resize(IMG_RESIZE),
@@ -106,6 +105,7 @@ def train(dataloader_train, dataloader_val, model, criterion,criterion_val, opti
         valid_losses.append(valid_loss)
 
         if valid_loss <= valid_loss_min:
+            print("Saving model with:", valid_loss)
             torch.save(model, SAVE_MODEL_DIR + "/model")
             valid_loss_min = valid_loss
 
@@ -135,7 +135,7 @@ def main():
     dataloader_val = data.DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=False,  num_workers=NUM_WORKERS, pin_memory=True)
 
     # Using pretrained resnet50 model
-    model = torchvision.models.resnet34(pretrained=True)
+    model = torchvision.models.resnet50(pretrained=True)
     
     for param in model.parameters():
         param.requires_grad = True 
@@ -158,8 +158,13 @@ def main():
     train_losses, valid_losses = train(dataloader_train, dataloader_val, model, criterion,criterion_val, optimizer, num_epochs, device, scheduler)
 
     
-    plt.plot(train_losses, color='b')
-    plt.plot(valid_losses, color='r')
+    plt.plot(train_losses, color='b', label="Train")
+    plt.plot(valid_losses, color='r', label="Validation")
+    plt.xlabel("# of eproc")
+    plt.ylabel("RMSE Loss")
+    plt.ylim(0,100)
+    plt.legend()
+    plt.savefig(SAVE_MODEL_DIR + '/lr_0_001_R50_MSE_LOSS.png')
     plt.show()
 
 if __name__ == "__main__":
