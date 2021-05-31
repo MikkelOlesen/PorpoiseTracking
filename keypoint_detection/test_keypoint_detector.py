@@ -5,6 +5,7 @@ import cv2
 import torchvision.transforms.functional as F
 import torchvision.transforms as transforms
 from PIL import Image
+import time
 
 class SquarePad:
     def __call__(self, image):
@@ -46,18 +47,20 @@ def transform_keypoints_to_original_size(orig_image, keypoints):
 def main():
     #Load model and run on GPU
     device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
-    model = torch.load("keypoint_detection/model_R34_5_9")
+    model = torch.load("keypoint_detection/model_R34_4_06_L1_LOSS")
     model.eval().to(device)
 
-    image = Image.open("keypoint_detection/test.JPG")
+    image = Image.open("keypoint_detection/test (1).png")
     model_image = transform(image).to(device)
 
     #Add batch dimention (one batch)
     model_image = model_image.unsqueeze(0)
 
+    start_time = time.time()
     #Run model on image
     with torch.no_grad():
         keypoints = model(model_image).cpu().detach().numpy()
+    print(time.time() - start_time)
 
     keypoints = transform_keypoints_to_original_size(image, keypoints)
     [x1, y1, x2, y2, x3, y3, x4, y4] = keypoints
@@ -71,7 +74,7 @@ def main():
     cv2.circle(cv_image, (x3,y3), radius=2, color=(0,0,255), thickness=-1)
     cv2.circle(cv_image, (x4,y4), radius=2, color=(0,0,255), thickness=-1)
 
-
+    cv2.imwrite("test_anno_5.png",cv_image)
     cv2.imshow("Image", cv_image)
     cv2.waitKey(0)
 

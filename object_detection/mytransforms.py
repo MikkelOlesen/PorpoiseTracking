@@ -103,7 +103,6 @@ class AddRandomNoise(object):
             image = image + noise * self.factor
         return image, target
 
-
 class ShowImg(object):
     def __call__(self, image, target):
         mean = np.array([0.485, 0.456, 0.406])

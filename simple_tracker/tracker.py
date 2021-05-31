@@ -6,7 +6,7 @@ import cv2
 import numpy as np
 import matplotlib as plt
 import imutils
-from sort import *
+from Libs.sort import *
 
 def calc_sd(vals, mean): #calculate standard diviation
     valSum = 0
@@ -53,7 +53,7 @@ imgRef = cv2.imread(reffilename)
 
 #Convert to Lab color space
 imgRef = cv2.cvtColor(imgRef, cv2.COLOR_BGR2LAB)
-'''
+
 # Select pixels for mask (Entire img)
 print("Extracting pixels for mask")
 imgMask = cv2.inRange(imgMask, (0,0,220),(40,40,255))
@@ -73,14 +73,14 @@ print("Calculating std diviation")
 l_sd = calc_sd(l_vals, l_mean)
 a_sd = calc_sd(a_vals, a_mean)
 b_sd = calc_sd(b_vals, b_mean)
-'''
-l_mean = 136.00291959813308
-a_mean = 106.83865168143082
-b_mean = 135.36836851093034
-l_sd = 13.575024881816251
-a_sd = 3.8573182016679635
-b_sd = 3.9693297640228216
 
+# USED TO SKIP COLOR CALCULATION
+#l_mean = 136.00291959813308
+#a_mean = 106.83865168143082
+#b_mean = 135.36836851093034
+#l_sd = 13.575024881816251
+#a_sd = 3.8573182016679635
+#b_sd = 3.9693297640228216
 #print(l_mean, a_mean, b_mean, l_sd, a_sd, b_sd)
 
 ''' Number of standard deviations to include '''
@@ -138,10 +138,7 @@ while True:
     # Frame counter
     cv2.rectangle(frame, (10, 2), (300,100), (255,255,255), -1)
     cv2.putText(frame, str(int(capture.get(cv2.CAP_PROP_POS_FRAMES))), (30, 80), cv2.FONT_HERSHEY_SIMPLEX, 3, (0,0,0),thickness=6)
-    #fps = cv2.getTickFrequency() / (cv2.getTickCount() - timer)
-    #cv2.putText(frame, str(int(fps)), (30, 80), cv2.FONT_HERSHEY_SIMPLEX, 3, (0,0,0),thickness=6)
 
-    
     x = 4
     cv2.namedWindow("Frame",cv2.WINDOW_KEEPRATIO)
     cv2.namedWindow("Mask",cv2.WINDOW_KEEPRATIO)

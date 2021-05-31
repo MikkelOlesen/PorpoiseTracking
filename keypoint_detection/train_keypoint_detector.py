@@ -10,12 +10,12 @@ from create_keypoint_dataset import porpoise_keypoint_dataset
 import myKeypointTransforms as T
 
 IMG_RESIZE = 224
-BATCH_SIZE = 32
+BATCH_SIZE = 30
 NUM_WORKERS = 2
 SAVE_MODEL_DIR = "keypoint_detection"
 DATA_PATH = "porpoise_keypoint_data"
 TRAIN_SPLIT = 0.1
-num_epochs = 200
+num_epochs = 1000
 
 
 
@@ -120,7 +120,8 @@ def train(dataloader_train, dataloader_val, model, criterion,criterion_val, opti
 def main():
     # train on the GPU or on the CPU
     device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
-    
+    #device = torch.device('cpu')
+
     # Create datasets with the right transforms
     train_dataset = porpoise_keypoint_dataset(DATA_PATH, TRANSFORM_TRAIN)
     val_dataset = porpoise_keypoint_dataset(DATA_PATH, TRANSFORM_VAL)
@@ -135,7 +136,7 @@ def main():
     dataloader_val = data.DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=False,  num_workers=NUM_WORKERS, pin_memory=True)
 
     # Using pretrained resnet50 model
-    model = torchvision.models.resnet50(pretrained=True)
+    model = torchvision.models.resnet34(pretrained=True)
     
     for param in model.parameters():
         param.requires_grad = True 
@@ -143,15 +144,15 @@ def main():
     # replace the last layer to fit all keypoints
     num_ftrs = model.fc.in_features
     model.fc = nn.Linear(num_ftrs, 4*2)
-    #model.fc = nn.Sequential(nn.Dropout(0.5), nn.Linear(num_ftrs, 4*2))
+    #model.fc = nn.Sequential(nn.Dropout(0.2), nn.Linear(num_ftrs, 4*2))
 
     # Send to GPU
     model.to(device)
 
     # construct an optimizer
-    criterion = nn.MSELoss()
+    criterion = nn.L1Loss()
     criterion_val = nn.MSELoss()
-    optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
+    optimizer = torch.optim.Adam(model.parameters(), lr=0.0001)
     #scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=3, factor=0.2,min_lr=0.0000001)
     scheduler = None
 
@@ -162,9 +163,9 @@ def main():
     plt.plot(valid_losses, color='r', label="Validation")
     plt.xlabel("# of eproc")
     plt.ylabel("RMSE Loss")
-    plt.ylim(0,100)
+    plt.ylim(0,50)
     plt.legend()
-    plt.savefig(SAVE_MODEL_DIR + '/lr_0_001_R50_MSE_LOSS.png')
+    plt.savefig(SAVE_MODEL_DIR + '/figures/lr_0_0001_R34_L1_LOSS_1000_new.png')
     plt.show()
 
 if __name__ == "__main__":

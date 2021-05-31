@@ -7,19 +7,19 @@ import time
 
 
 from PIL import Image
-from libs.sort import *
+from Libs.sort import *
 
-video_path='videos/20200417 - Male - Group of porpoises bottom feeding.MOV'
-START_FRAME = 0
-CONF = 0.5
+video_path='videos/20200417 - Male - Group of porpoises with calf foraging.MOV'
+START_FRAME = 79
+CONF = 0.8
 
 transform = transforms.Compose([
-    transforms.Resize(800),
+    transforms.Resize((800,800)),
     transforms.ToTensor(),
     transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
 ])
 
-def run_model(image, model, device, detection_threshold):
+def detect_porpoises(image, model, device, detection_threshold):
     # transform the image to tensor
     image = transform(image).to(device)
     image = image.unsqueeze(0) # add a batch dimension
@@ -39,9 +39,22 @@ def run_model(image, model, device, detection_threshold):
 
     return boxes, scores
 
+def transform_boxes_to_original_size(orig_image, boxes):
+    h, w, c = orig_image.shape
+    new_bboxes = []
+
+    for x1, y1, x2, y2 in boxes:
+        x1 = x1 * (w/800)
+        y1 = y1 * (h/800)
+        x2 = x2 * (w/800)
+        y2 = y2 * (h/800)
+        new_bboxes.append([x1, y1, x2, y2])
+
+    return new_bboxes
+
 def main():
     device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
-    model = torch.load("object_detection/models/model_10_eproc_big_set")
+    model = torch.load("object_detection/models/model_643_normal_anchor")
     model.eval().to(device)
 
     #Load video
@@ -61,13 +74,13 @@ def main():
         if frame is None:
             break
         
-        
         #Convert image to pil image and detect porpoises
         pilimg = Image.fromarray(frame)
-        boxes, score = run_model(pilimg, model, device, CONF)
+        boxes, score = detect_porpoises(pilimg, model, device, CONF)
+        boxes = transform_boxes_to_original_size(frame,boxes)
         
         
-        if boxes is not None:
+        if len(boxes) > 0:
             #combine boxes and scores for MO tracker to use
             bBoxes = np.insert(boxes, 4, score, axis=1)
 
@@ -76,7 +89,7 @@ def main():
             #Draw predicted box
             for x1, y1, x2, y2, score in bBoxes:
                 cv2.rectangle(frame, (int(x1), int(y1)), (int(x2), int(y2)), (0,0,128),2)
-                cv2.putText(frame,str(score),(int(x2), int(y2)),cv2.FONT_HERSHEY_SIMPLEX, 1.1, (0,0,0),thickness=3)
+                cv2.putText(frame,str(round(score,3)),(int(x2), int(y2)),cv2.FONT_HERSHEY_SIMPLEX, 1.1, (0,0,0),thickness=3)
             
             #Draw tracked box
             for bb in track_bBoxes_id:
@@ -93,7 +106,8 @@ def main():
         cv2.namedWindow("Frame",cv2.WINDOW_KEEPRATIO)
         cv2.resizeWindow('Frame', int(frame.shape[1]/x),int(frame.shape[0]/x))
         cv2.imshow("Frame", frame)
-        if cv2.waitKey(1) & 0xFF == ord('q'):
+        cv2.imwrite("faster_rcnn_test_3.png", frame)
+        if cv2.waitKey(0) & 0xFF == ord('q'):
             break
     
     capture.release()
