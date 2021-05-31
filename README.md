@@ -14,7 +14,7 @@ To run the porpoise tracker and pose estimator run the script ```porpoise_tracke
 ```
 python porpoise_tracker_with_keypoints.py <video_path> <detection_model_path> <keypoint_model_path> <confidence_threshold> <show_output>
 ```
-
+The models need can be found in the exam hand-in folder. 
 
 
 ## Content
